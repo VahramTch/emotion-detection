@@ -50,6 +50,10 @@ class CameraApp:
 
 def main():
     root = tk.Tk()
+    icon_path = '/home/vahram/emotion-detection/medusa_interface/medusa1.png'
+    ico = Image.open(icon_path)
+    photo = ImageTk.PhotoImage(ico)
+    root.wm_iconphoto(False, photo)
     app = CameraApp(root, "Medusa 1.0")
     root.mainloop()
 
