@@ -1,8 +1,10 @@
 import cv2
 import tkinter as tk
 import os
+import numpy as np
 from tkinter import Button, Label, Menu
 from PIL import Image, ImageTk
+import tensorflow as tf
 
 # Get the directory of the current script
 current_dir = os.getcwd()
@@ -16,6 +18,8 @@ icons_dir = os.path.join(assets_dir, 'icons')
 themes_dir = os.path.join(assets_dir, 'themes')
 # Path to the xml_dir directory
 xml_dir = os.path.join(assets_dir, 'xml')
+# Path to the models_dir directory
+models_dir = os.path.join(assets_dir, 'models')
 
 # Path to the green.json file inside the 'themes' folder
 azure_tcl_file_path = os.path.join(themes_dir, 'azure.tcl')
@@ -120,7 +124,7 @@ class MedusaInterface:
                     # Draw rectangles around faces
                     for (x, y, w, h) in faces:
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-
+                        cv2.putText(frame, "Happy", (x + int(w/10),y + int(y/10)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,255), 2)
                 # Convert frame to RGB and display in canvas
                 self.photo = ImageTk.PhotoImage(
                     image=Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))

@@ -28,7 +28,7 @@ num_labels = len(classes)
 image_size = 224
 num_features = 64
 batch_size = 64
-epochs = 100
+epochs = 5
 width, height = 48, 48
 
 # Initialize the ModelHelper class
@@ -117,11 +117,11 @@ model.fit(x_train, y_train_one_hot,
           shuffle=True)
 
 # Uncomment to save the model
-'''
+
 # Saving the model to be used later
-fer_json = model.to_json()
-with open("fer.json", "w") as json_file:
-    json_file.write(fer_json)
-model.save_weights("fer.h5")
+trained_model = model.to_json()
+with open("trained_model.json", "w") as json_file:
+    json_file.write(trained_model)
+model.save_weights("trained_model.h5")
 print("Saved model to disk")
-'''
+

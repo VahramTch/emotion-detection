@@ -19,3 +19,15 @@ class ModelHelper:
                 
                 if count == 200: break
         return training_data
+    
+    def get_prediction_from_json_model(model):
+        predictions = 0
+
+
+        return predictions
+    
+    def get_prediction_from_h5_model(model):
+        predictions = 0
+
+
+        return predictions
