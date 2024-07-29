@@ -19,8 +19,8 @@ icons_dir = os.path.join(assets_dir, 'icons')
 themes_dir = os.path.join(assets_dir, 'themes')
 # Path to the xml_dir directory
 xml_dir = os.path.join(assets_dir, 'xml')
-# Path to the models_dir directory
-models_dir = os.path.join(assets_dir, 'models')
+# Path to the h5models_dir directory
+h5models_dir = os.path.join(assets_dir, 'h5models')
 
 # Path to the green.json file inside the 'themes' folder
 azure_tcl_file_path = os.path.join(themes_dir, 'azure.tcl')
@@ -33,6 +33,8 @@ xml_file_path = os.path.join(xml_dir, 'haarcascade_frontalface_default.xml')
 # Path to the xml_file inside the 'icons' folder
 ico_file_path = os.path.join(icons_dir, 'medusa2.ico')
 
+# Path to the h5_file inside the 'f5models' folder
+h5_model_path = os.path.join(h5models_dir, 'model_optimal.h5')
 
 class MedusaInterface:
     def __init__(self, window, window_title, cascade_path):
@@ -56,7 +58,7 @@ class MedusaInterface:
         window.config(menu=self.menu_bar)
 
         # Load the pretrained model once
-        self.model = load_model('model_optimal.h5')
+        self.model = load_model(h5_model_path)
 
         # Create "File" menu
         self.file_menu = Menu(self.menu_bar, tearoff=0)
