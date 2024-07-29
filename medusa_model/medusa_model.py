@@ -1,16 +1,11 @@
 import tensorflow as tf
-import cv2
 import os
 import numpy as np
-import random
-from model_helper import ModelHelper
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
 from keras.losses import categorical_crossentropy
 from keras.optimizers import Adam
-from keras.regularizers import l2
-from sklearn.model_selection import train_test_split
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint
 
@@ -30,7 +25,7 @@ num_labels = len(classes)
 image_size = 224
 num_features = 64
 batch_size = 64
-epochs = 10
+epochs = 50
 width, height = 48, 48
 
 
