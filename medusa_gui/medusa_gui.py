@@ -5,6 +5,7 @@ import numpy as np
 from tkinter import Button, Label, Menu
 from PIL import Image, ImageTk
 import tensorflow as tf
+from tensorflow.keras.models import load_model
 
 # Get the directory of the current script
 current_dir = os.getcwd()
@@ -44,12 +45,18 @@ class MedusaInterface:
         self.delay = 15
         self.face_recognition_enabled = False
 
+        # Define class labels
+        self.class_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+
         # Load the Haar cascade for face detection
         self.face_cascade = cv2.CascadeClassifier(cascade_path)
 
         # Create a menu bar
         self.menu_bar = Menu(window)
         window.config(menu=self.menu_bar)
+
+        # Load the pretrained model once
+        self.model = load_model('model_optimal.h5')
 
         # Create "File" menu
         self.file_menu = Menu(self.menu_bar, tearoff=0)
@@ -110,28 +117,43 @@ class MedusaInterface:
         self.btn_enable_face_recognition.config(
             text="Disable Face Recognition" if self.face_recognition_enabled else "Enable Face Recognition"
         )
+    def preprocess_frame(self, frame, image_size=(48, 48)):
+        # Convert frame to grayscale for face detection
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        faces = self.face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        
+        # Process each detected face
+        for (x, y, w, h) in faces:
+            face = frame[y:y + h, x:x + w]
+            face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)  # Convert face to grayscale
+            face = cv2.resize(face, image_size)  # Resize to 48x48
+            face = face.astype('float32') / 255.0  # Normalize pixel values
+            face = np.expand_dims(face, axis=-1)  # Add channel dimension
+            face = np.expand_dims(face, axis=0)  # Add batch dimension
+            yield (x, y, w, h, face)
+
 
     def update(self):
         if self.vid is not None:
             ret, frame = self.vid.read()
             if ret:
                 if self.face_recognition_enabled:
-                    # Convert frame to grayscale for face detection
-                    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                    faces = self.face_cascade.detectMultiScale(
-                        gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30)
-                    )
-                    # Draw rectangles around faces
-                    for (x, y, w, h) in faces:
+                    for (x, y, w, h, face) in self.preprocess_frame(frame):
+                        # Predict emotion
+                        predictions = self.model.predict(face)
+                        predicted_class = np.argmax(predictions[0])
+                        emotion = self.class_labels[predicted_class]
+                        
+                        # Draw rectangle and label
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                        cv2.putText(frame, "Happy", (x + int(w/10),y + int(y/10)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0,0,255), 2)
+                        cv2.putText(frame, emotion, (x + int(w / 10), y + int(y / 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+
                 # Convert frame to RGB and display in canvas
-                self.photo = ImageTk.PhotoImage(
-                    image=Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                )
+                self.photo = ImageTk.PhotoImage(image=Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
                 self.canvas.create_image(0, 0, image=self.photo, anchor=tk.NW)
 
             self.window.after(self.delay, self.update)
+
 
     def open_settings(self):
         self.show_popup("Settings")
