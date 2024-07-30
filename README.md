@@ -30,15 +30,15 @@ Go to the project directory
   cd emotion-detection
 ```
 
-Install dependencies
+Install requirements
 
 ```bash
-  npm install
+  pip install -r requirements.txt
 ```
 
-Start the server
+Run the interface
 
 ```bash
-  npm run start
+  python medusa_gui/medusa_gui.py
 ```
 
