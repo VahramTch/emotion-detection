@@ -12,8 +12,8 @@ Medusa is an advanced emotion detection system designed to analyze and interpret
 - Cross platform
 
 
-## 🚀 About Me
-I'm a full stack developer...
+## 🚀 About Us
+We are a team of data enthusiasts...
 
 
 ## Run Locally
