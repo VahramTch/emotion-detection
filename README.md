@@ -21,7 +21,7 @@ We are a team of data enthusiasts...
 Clone the project
 
 ```bash
-  git clone [https://link-to-project](https://github.com/VahramTch/emotion-detection.git)
+  git clone https://github.com/VahramTch/emotion-detection.git
 ```
 
 Go to the project directory
