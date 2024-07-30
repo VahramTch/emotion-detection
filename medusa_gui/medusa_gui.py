@@ -111,7 +111,7 @@ class EmotionDetectorGUI:
     def open_camera(self):
         print("Attempting to open camera...")
         if self.vid is None:
-            self.vid = cv2.VideoCapture(self.video_source)
+            self.vid = cv2.VideoCapture(self.video_source, cv2.CAP_DSHOW)
             if not self.vid.isOpened():
                 print("Error: Could not open camera.")
                 self.vid = None
