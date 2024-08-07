@@ -6,6 +6,7 @@ from tkinter import Button, Label, Menu
 from PIL import Image, ImageTk
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+import platform
 
 # Get the directory of the current script
 current_dir = os.getcwd()
@@ -111,7 +112,12 @@ class EmotionDetectorGUI:
     def open_camera(self):
         print("Attempting to open camera...")
         if self.vid is None:
-            self.vid = cv2.VideoCapture(self.video_source, cv2.CAP_DSHOW)
+            if platform.system() == 'Windows':
+                self.vid = cv2.VideoCapture(self.video_source, cv2.CAP_DSHOW)
+            elif platform.system() == 'Darwin':
+                self.vid = cv2.VideoCapture(self.video_source)
+            else:
+                'Did not find platform system'
             if not self.vid.isOpened():
                 print("Error: Could not open camera.")
                 self.vid = None
