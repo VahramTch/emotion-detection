@@ -41,8 +41,12 @@ class EmotionDetectorGUI:
     def __init__(self, window, window_title, cascade_path):
         self.window = window
         self.window.title(window_title)
-
-        self.video_source = 0
+        if platform.system() == 'Windows':
+            self.video_source = 0
+        elif platform.system() == 'Darwin':
+            self.video_source = 1
+        else:
+            'Did not find platform system'
         self.vid = None
         self.photo = None
         self.delay = 15
@@ -197,7 +201,8 @@ class EmotionDetectorGUI:
 
                         # Draw rectangle and label
                         cv2.rectangle(resized_frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
-                        cv2.putText(resized_frame, emotion, (x + int(w / 10), y + int(y / 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
+                        cv2.putText(resized_frame, emotion, (x + int(w / 10), y + int(y / 10)),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7,
                                     (0, 0, 255), 2)
 
                 # Convert frame to RGB and display in canvas

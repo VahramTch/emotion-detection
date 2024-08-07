@@ -27,3 +27,6 @@ share/python-wheels/
 
 # Visual Studio Code
 .vscode/
+
+#Files
+.dataset/
