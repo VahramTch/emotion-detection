@@ -4,10 +4,10 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
-from keras.losses import categorical_crossentropy
-from keras.optimizers import Adam
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from sklearn.preprocessing import LabelBinarizer
 
 # Get the directory of the current script
 current_dir = os.getcwd()
@@ -22,101 +22,69 @@ test_dir = os.path.join(dataset_dir, 'test')
 
 classes = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 num_labels = len(classes)
-image_size = 224
+#image_size = 224
 num_features = 64
 batch_size = 64
 epochs = 50
 width, height = 48, 48
+image_size = (48, 48)
 
-train_datagen = ImageDataGenerator(
-    width_shift_range=0.1,  # Randomly shift the width of images by up to 10%
-    height_shift_range=0.1,  # Randomly shift the height of images by up to 10%
-    horizontal_flip=True,  # Flip images horizontally at random
-    rescale=1. / 255,  # Rescale pixel values to be between 0 and 1
-    validation_split=0.2  # Set aside 20% of the data for validation
-)
+def load_images_from_directory(directory, image_size, class_labels):
+    images = []
+    labels = []
+    for label in class_labels:
+        class_dir = os.path.join(directory, label)
+        for image_name in os.listdir(class_dir):
+            image_path = os.path.join(class_dir, image_name)
+            image = load_img(image_path, target_size=image_size, color_mode='grayscale')
+            image_array = img_to_array(image) / 255.0  # Normalize to [0, 1]
+            images.append(image_array)
+            labels.append(label)
+    return np.array(images), np.array(labels)
 
-validation_datagen = ImageDataGenerator(
-    rescale=1. / 255,  # Rescale pixel values to be between 0 and 1
-    validation_split=0.2  # Set aside 20% of the data for validation
-)
+# Define class labels
+class_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 
-train_generator = train_datagen.flow_from_directory(
-    directory=train_dir,  # Directory containing the training data
-    target_size=(48, 48),  # Resizes all images to 48x48 pixels
-    batch_size=64,  # Number of images per batch
-    color_mode="grayscale",  # Converts the images to grayscale
-    class_mode="categorical",  # Classifies the images into 7 categories
-    subset="training"  # Uses the training subset of the data
-)
+# Load and preprocess training and test data
+train_images, train_labels = load_images_from_directory(train_dir, image_size, class_labels)
+test_images, test_labels = load_images_from_directory(test_dir, image_size, class_labels)
 
-validation_generator = validation_datagen.flow_from_directory(
-    directory=test_dir,  # Directory containing the validation data
-    target_size=(48, 48),  # Resizes all images to 48x48 pixels
-    batch_size=64,  # Number of images per batch
-    color_mode="grayscale",  # Converts the images to grayscale
-    class_mode="categorical",  # Classifies the images into 7 categories
-    subset="validation"  # Uses the validation subset of the data
-)
-# Define the model architecture
+# Encode labels
+lb = LabelBinarizer()
+train_labels = lb.fit_transform(train_labels)
+test_labels = lb.transform(test_labels)
+
+
+# Model
 model = Sequential()
-
-# Add a convolutional layer with 32 filters, 3x3 kernel size, and relu activation function
 model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(48, 48, 1)))
-# Add a batch normalization layer
 model.add(BatchNormalization())
-# Add a second convolutional layer with 64 filters, 3x3 kernel size, and relu activation function
 model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
-# Add a second batch normalization layer
 model.add(BatchNormalization())
-# Add a max pooling layer with 2x2 pool size
 model.add(MaxPooling2D(pool_size=(2, 2)))
-# Add a dropout layer with 0.25 dropout rate
 model.add(Dropout(0.25))
-
-# Add a third convolutional layer with 128 filters, 3x3 kernel size, and relu activation function
 model.add(Conv2D(128, kernel_size=(3, 3), activation='relu'))
-# Add a third batch normalization layer
 model.add(BatchNormalization())
-# Add a fourth convolutional layer with 128 filters, 3x3 kernel size, and relu activation function
 model.add(Conv2D(128, kernel_size=(3, 3), activation='relu'))
-# Add a fourth batch normalization layer
 model.add(BatchNormalization())
-# Add a max pooling layer with 2x2 pool size
 model.add(MaxPooling2D(pool_size=(2, 2)))
-# Add a dropout layer with 0.25 dropout rate
 model.add(Dropout(0.25))
-
-# Add a fifth convolutional layer with 256 filters, 3x3 kernel size, and relu activation function
 model.add(Conv2D(256, kernel_size=(3, 3), activation='relu'))
-# Add a fifth batch normalization layer
 model.add(BatchNormalization())
-# Add a sixth convolutional layer with 256 filters, 3x3 kernel size, and relu activation function
 model.add(Conv2D(256, kernel_size=(3, 3), activation='relu'))
-# Add a sixth batch normalization layer
 model.add(BatchNormalization())
-# Add a max pooling layer with 2x2 pool size
 model.add(MaxPooling2D(pool_size=(2, 2)))
-# Add a dropout layer with 0.25 dropout rate
 model.add(Dropout(0.25))
-
-# Flatten the output of the convolutional layers
 model.add(Flatten())
-# Add a dense layer with 256 neurons and relu activation function
 model.add(Dense(256, activation='relu'))
-# Add a seventh batch normalization layer
 model.add(BatchNormalization())
-# Add a dropout layer with 0.5 dropout rate
 model.add(Dropout(0.5))
-# Add a dense layer with 7 neurons (one for each class) and softmax activation function
 model.add(Dense(7, activation='softmax'))
 
-# Compile the model with categorical cross-entropy loss, adam optimizer, and accuracy metric
-model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(lr=0.0001), metrics=['accuracy'])
+model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001), metrics=['accuracy'])
 
-# Define the callback
 checkpoint_callback = ModelCheckpoint(
-    filepath='model_weights.h5',
+    filepath='checkpoint1.weights.h5',
     monitor='val_accuracy',
     save_best_only=True,
     save_weights_only=True,
@@ -124,13 +92,11 @@ checkpoint_callback = ModelCheckpoint(
     verbose=1
 )
 
-# Train the model with the callback
 history = model.fit(
-    train_generator,
-    steps_per_epoch=len(train_generator),
-    epochs=epochs,
-    validation_data=validation_generator,
-    validation_steps=len(validation_generator),
+    train_images, train_labels,
+    batch_size=64,
+    epochs=50,
+    validation_data=(test_images, test_labels),
     callbacks=[checkpoint_callback]
 )
 
