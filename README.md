@@ -4,20 +4,23 @@
 Medusa is an advanced emotion detection system designed to analyze and interpret human emotions in real-time using video feeds. The project leverages deep learning and computer vision techniques to identify and categorize emotional expressions from facial images captured through a webcam or other video sources.
 
 
-## Features
+## 🎯 Features
 
-- Light/dark mode toggle
-- Live previews
-- Fullscreen mode
-- Cross platform
+- Real-Time Emotion Detection
+- Model Training and Fine-Tuning
+- Cross-Platform Compatibility
+- Customizable GUI
 
+## 🛠️ Tech Stack
+- Programming Language: Python
+- Deep Learning Framework: TensorFlow, Keras
+- GUI Framework: Tkinter
+- Computer Vision: OpenCV
+- Model Training: Custom CNN architecture trained on the FER-2013 dataset
+- Data Handling: NumPy, Pandas
 
-## 🚀 About Us
-We are a team of data enthusiasts...
-
-
-## Run Locally
-
+## 🚀 Run Locally
+Follow these steps to set up Medusa on your local machine:
 Clone the project
 
 ```bash
