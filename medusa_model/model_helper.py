@@ -70,7 +70,7 @@ class EmotionRecognitionModel:
         self.learning_rate = learning_rate
         self.model = None
         self.lb = LabelBinarizer()
-        self.model_path = os.path.join(os.getcwd(),'h5models','model_optimal.h5')
+        self.model_path = os.path.join(os.getcwd(),'medusa_model','h5models','model_optimal.h5')
 
         # Initialize FERData class for loading images
         self.fer_data = FERData(image_size=self.image_size, color_mode='grayscale')
