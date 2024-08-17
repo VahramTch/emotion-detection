@@ -44,7 +44,7 @@ class FERData:
         return np.array(images), np.array(labels)
     
 class EmotionRecognitionModel:
-    def __init__(self, train_dir, test_dir, class_labels, image_size=(48, 48), batch_size=64, epochs=50, learning_rate=0.0001):
+    def __init__(self, train_dir, test_dir, class_labels, train_images, train_labels, test_images, test_labels, image_size=(48, 48), batch_size=64, epochs=50, learning_rate=0.0001):
         """
         Initializes the EmotionRecognitionModel class.
 
@@ -61,11 +61,16 @@ class EmotionRecognitionModel:
         self.class_labels = class_labels
         self.num_labels = len(class_labels)
         self.image_size = image_size
+        self.train_images = train_images
+        self.train_labels = train_labels
+        self.test_images = test_images
+        self.test_labels = test_labels
         self.batch_size = batch_size
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.model = None
         self.lb = LabelBinarizer()
+        self.model_path = os.path.join(os.getcwd(),'h5models','model_optimal.h5')
 
         # Initialize FERData class for loading images
         self.fer_data = FERData(image_size=self.image_size, color_mode='grayscale')
@@ -103,16 +108,9 @@ class EmotionRecognitionModel:
         self.model = model
 
     def train_model(self):
-        """
-        Trains the CNN model on the training data and validates it on the test data.
-        """
-        # Load and preprocess training and test data using FERData class
-        train_images, train_labels = self.fer_data.load_images_from_directory(self.train_dir, self.class_labels)
-        test_images, test_labels = self.fer_data.load_images_from_directory(self.test_dir, self.class_labels)
-
         # Encode labels
-        train_labels = self.lb.fit_transform(train_labels)
-        test_labels = self.lb.transform(test_labels)
+        train_labels = self.lb.fit_transform(self.train_labels)
+        test_labels = self.lb.transform(self.test_labels)
 
         # Model checkpoint callback
         checkpoint_callback = ModelCheckpoint(
@@ -126,15 +124,55 @@ class EmotionRecognitionModel:
 
         # Train the model
         history = self.model.fit(
-            train_images, train_labels,
+            self.train_images, train_labels,
             batch_size=self.batch_size,
             epochs=self.epochs,
-            validation_data=(test_images, test_labels),
+            validation_data=(self.test_images, test_labels),
             callbacks=[checkpoint_callback]
         )
 
         # Save the final model
-        self.model.save('model_optimal.h5')
+        self.model.save(self.model_path)
+
+        # Plot training & validation accuracy values
+        plt.figure(figsize=(14, 5))
+
+        plt.subplot(1, 3, 1)
+        plt.plot(history.history['accuracy'])
+        plt.plot(history.history['val_accuracy'])
+        plt.title('Model Accuracy')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.legend(['Train', 'Validation'], loc='upper left')
+
+        # Plot training & validation loss values
+        plt.subplot(1, 3, 2)
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('Model Loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.legend(['Train', 'Validation'], loc='upper left')
+
+        # Calculate precision per epoch using validation data
+        precisions = []
+        for i in range(len(history.history['val_accuracy'])):
+            y_pred = self.model.predict(self.test_images)
+            y_pred_classes = np.argmax(y_pred, axis=1)
+            y_true = np.argmax(test_labels, axis=1)
+            precision = precision_score(y_true, y_pred_classes, average='weighted')
+            precisions.append(precision)
+
+        plt.subplot(1, 3, 3)
+        plt.plot(precisions)
+        plt.title('Model Precision')
+        plt.xlabel('Epoch')
+        plt.ylabel('Precision')
+        plt.legend(['Validation'], loc='upper left')
+
+        plt.tight_layout()
+        plt.show()
+
         return history
 
 class ModelEvaluator:

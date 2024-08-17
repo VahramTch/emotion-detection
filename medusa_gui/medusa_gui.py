@@ -10,23 +10,34 @@ import platform
 
 # Get the directory of the current script
 current_dir = os.getcwd()
-# Path to the assets directory
-assets_dir = os.path.join(current_dir, 'medusa_gui', 'assets')
-# Path to the icons directory
-icons_dir = os.path.join(assets_dir, 'icons')
-# Path to the xml directory
-xml_dir = os.path.join(assets_dir, 'xml')
-# Path to the h5models directory
-h5models_dir = os.path.join(assets_dir, 'h5models')
 
-# Path to the xml file inside the 'xml' folder
+# Path to the 'assets' directory inside the 'medusa_gui' folder
+assets_dir = os.path.join(current_dir, 'medusa_gui', 'assets')
+
+# Path to the 'icons' directory inside the 'assets' folder
+icons_dir = os.path.join(assets_dir, 'icons')
+
+# Path to the 'xml' directory inside the 'assets' folder
+xml_dir = os.path.join(assets_dir, 'xml')
+
+# Path to the XML file inside the 'xml' folder (used for face detection)
 xml_file_path = os.path.join(xml_dir, 'haarcascade_frontalface_default.xml')
 
-# Path to the ico file inside the 'icons' folder
+# Path to the ICO file inside the 'icons' folder (used as an application icon)
 ico_file_path = os.path.join(icons_dir, 'medusa2.ico')
 
-# Path to the h5 file inside the 'h5models' folder
-h5_model_path = os.path.join(h5models_dir, 'model_optimal.h5')
+# Path to the 'emotion-detection' directory, which is one level above the current directory
+emotion_detection_dir = os.path.join(current_dir, os.pardir, 'emotion-detection')
+
+# Path to the 'medusa_model' directory inside the 'emotion-detection' folder
+medusa_model_dir = os.path.join(emotion_detection_dir, 'medusa_model')
+
+# Path to the 'h5models' directory inside the 'medusa_model' folder
+h5_model_dir = os.path.join(medusa_model_dir, 'h5models')
+
+# Path to the H5 file (model_optimal.h5) inside the 'h5models' folder (used for saving or loading the model)
+h5_model_path = os.path.join(h5_model_dir, 'model_optimal.h5')
+
 
 # Check if files exist
 if not os.path.exists(xml_file_path):
