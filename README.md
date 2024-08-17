@@ -1,5 +1,5 @@
 
-# ଳ Medusa: Emotion Detection System
+# 🪼 Medusa: Emotion Detection System
 
 Medusa is an advanced emotion detection system designed to analyze and interpret human emotions in real-time using video feeds. The project leverages deep learning and computer vision techniques to identify and categorize emotional expressions from facial images captured through a webcam or other video sources.
 
