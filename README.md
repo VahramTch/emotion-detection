@@ -45,3 +45,5 @@ Run the interface
   python medusa_gui/medusa_gui.py
 ```
 
+## 📈 Performance
+The model achieves an accuracy of approximately 70% on the test set of the FER-2013 dataset. 
