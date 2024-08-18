@@ -20,10 +20,11 @@ h5models_dir = os.path.join(current_dir, 'medusa_model', 'h5models')
 
 # Path to the H5 file ('model_optimal.h5') inside the 'h5models' folder at the current directory level
 h5_model_path = os.path.join(h5models_dir, 'model_optimal.h5')
-print('111', h5_model_path)
 
-# Define class labels and image size
+
+# Define class labels
 class_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
+# Define image size
 image_size = (48, 48)
 
 print("Loading the data...")
@@ -38,9 +39,9 @@ print("Data Loaded !")
 # Initialize the EmotionRecognitionModel class
 emotion_model = EmotionRecognitionModel(train_dir, test_dir, class_labels, train_images, train_labels, test_images, test_labels, image_size=image_size, batch_size=64, epochs=30, learning_rate=0.0001)
 # Build the model
-#emotion_model.build_model()
+emotion_model.build_model()
 # Train the model
-#history = emotion_model.train_model()
+history = emotion_model.train_model()
 
 # Load the pre-trained model
 model = load_model(h5_model_path)
