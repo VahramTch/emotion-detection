@@ -239,7 +239,6 @@ class ModelEvaluator:
 
     def plot_keras_history(self, history):
         """
-        
         :param history: 
         :return: 
         """
@@ -259,26 +258,16 @@ class ModelEvaluator:
             epochs = range(1, len(metric_train_values) + 1)
             
             # leaving extra spaces to allign with the validation text
-            training_text = "   Training {}: {:.5f}".format(metric,
-                                                            metric_train_values[-1])
+            training_text = "   Training {}: {:.5f}".format(metric, metric_train_values[-1])
 
             # metric
             plt.figure(i, figsize=(12, 6))
-
-            plt.plot(epochs,
-                    metric_train_values,
-                    'b',
-                    label=training_text)
+            plt.plot(epochs, metric_train_values, 'b', label=training_text)
             
             # if we validation metric exists, then plot that as well
             if metric_val_values:
-                validation_text = "Validation {}: {:.5f}".format(metric,
-                                                                metric_val_values[-1])
-
-                plt.plot(epochs,
-                        metric_val_values,
-                        'g',
-                        label=validation_text)
+                validation_text = "Validation {}: {:.5f}".format(metric, metric_val_values[-1])
+                plt.plot(epochs, metric_val_values, 'g', label=validation_text)
             
             # add title, xlabel, ylabe, and legend
             plt.title('Model Metric: {}'.format(metric))
