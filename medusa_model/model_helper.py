@@ -6,14 +6,13 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
-from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, f1_score, precision_score, recall_score
-from tensorflow.keras.models import load_model
 from sklearn.preprocessing import LabelBinarizer
 from keras.preprocessing.image import load_img, img_to_array
 
 class FERData:
-    def __init__(self, image_size=(48, 48), color_mode='grayscale'):
+    def __init__(self, image_size, color_mode='grayscale'):
         """
         Initializes the FERData class with image size and color mode.
         
@@ -44,27 +43,23 @@ class FERData:
         return np.array(images), np.array(labels)
     
 class EmotionRecognitionModel:
-    def __init__(self, train_dir, test_dir, class_labels, train_images, train_labels, test_images, test_labels, image_size=(48, 48), batch_size=64, epochs=50, learning_rate=0.0001):
+    def __init__(self, class_labels, train_images, train_labels, valid_images, valid_labels, image_size, batch_size=64, epochs=50, learning_rate=0.0001):
         """
         Initializes the EmotionRecognitionModel class.
 
-        :param train_dir: Path to the training directory.
-        :param test_dir: Path to the testing directory.
         :param class_labels: List of class labels.
         :param image_size: Tuple specifying the size to which each image will be resized.
         :param batch_size: Batch size for training.
         :param epochs: Number of epochs for training.
         :param learning_rate: Learning rate for the optimizer.
         """
-        self.train_dir = train_dir
-        self.test_dir = test_dir
         self.class_labels = class_labels
         self.num_labels = len(class_labels)
         self.image_size = image_size
         self.train_images = train_images
         self.train_labels = train_labels
-        self.test_images = test_images
-        self.test_labels = test_labels
+        self.valid_images = valid_images,
+        self.valid_labels = valid_labels
         self.batch_size = batch_size
         self.epochs = epochs
         self.learning_rate = learning_rate
@@ -75,7 +70,7 @@ class EmotionRecognitionModel:
         # Initialize FERData class for loading images
         self.fer_data = FERData(image_size=self.image_size, color_mode='grayscale')
 
-    def build_model(self):
+    def build_cnn_model(self):
         """
         Builds the CNN model for emotion recognition.
         """
@@ -107,71 +102,71 @@ class EmotionRecognitionModel:
         model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
         self.model = model
 
+    def build_alexnet_model(self):
+        """
+        Builds the CNN AlexNet model for emotion recognition.
+        """
+        model = Sequential()
+        model.add(Conv2D(96, kernel_size=(11,11), input_shape=(self.image_size[0], self.image_size[1], 1), strides=(4,4), padding='valid', activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2,2), strides=(2,2), padding='valid'))                 
+        model.add(Conv2D(256, kernel_size=(11,11), strides=(1,1), padding='valid', activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2,2), strides=(2,2), padding='valid'))
+        model.add(Conv2D(384, kernel_size=(3,3), strides=(1,1), padding='valid', activation='relu'))
+        model.add(Conv2D(384, kernel_size=(3,3), strides=(1,1), padding='valid', activation='relu'))
+        model.add(Conv2D(256, kernel_size=(3,3), strides=(1,1), padding='valid', activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2,2), strides=(2,2), padding='valid'))
+        model.add(Flatten())
+        model.add(Dense(4096, activation='relu'))
+        model.add(Dropout(0.4))
+        model.add(Dense(1000, activation='relu'))
+        model.add(Dropout(0.4))
+        model.add(Dense(self.num_labels, activation='softmax'))
+
+        model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
+        self.model = model
+
+    def build_resnet50_model(self):
+        """
+        Builds the CNN ResNet-50 model for emotion recognition.
+        """
+        resnet_model = Sequential()
+        pretrained_model = tf.keras.applications.ResNet50(include_top=False,
+                                                  input_shape=(self.image_size[0], self.image_size[1], 1),
+                                                  pooling='avg',
+                                                  weights='imagenet')
+        for layer in pretrained_model.layers:
+            layer.trainable = False
+        resnet_model.add(pretrained_model)
+        
+        resnet_model.add(Flatten())
+        resnet_model.add(Dense(512, activation='relu'))
+        resnet_model.add(Dense(self.num_labels, activation='softmax'))
+
+        resnet_model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
+
+
     def train_model(self):
         # Encode labels
         train_labels = self.lb.fit_transform(self.train_labels)
-        test_labels = self.lb.transform(self.test_labels)
+        valid_labels = self.lb.transform(self.valid_labels)
 
-        # Model checkpoint callback
-        checkpoint_callback = ModelCheckpoint(
-            filepath='checkpoint1.weights.h5',
-            monitor='val_accuracy',
-            save_best_only=True,
-            save_weights_only=True,
-            mode='max',
-            verbose=1
-        )
+        # Stop training when a monitored quantity has stopped improving
+        early_stopping_callback = EarlyStopping(monitor='val_loss',
+                  patience=3,
+                  verbose=1,
+                  min_delta=0.01,
+                  restore_best_weights=True)
 
         # Train the model
         history = self.model.fit(
             self.train_images, train_labels,
             batch_size=self.batch_size,
             epochs=self.epochs,
-            validation_data=(self.test_images, test_labels),
-            callbacks=[checkpoint_callback]
+            validation_data=(self.valid_images, valid_labels),callbacks=[early_stopping_callback]
         )
 
         # Save the final model
         self.model.save(self.model_path)
-
-        # Plot training & validation accuracy values
-        plt.figure(figsize=(14, 5))
-
-        plt.subplot(1, 3, 1)
-        plt.plot(history.history['accuracy'])
-        plt.plot(history.history['val_accuracy'])
-        plt.title('Model Accuracy')
-        plt.xlabel('Epoch')
-        plt.ylabel('Accuracy')
-        plt.legend(['Train', 'Validation'], loc='upper left')
-
-        # Plot training & validation loss values
-        plt.subplot(1, 3, 2)
-        plt.plot(history.history['loss'])
-        plt.plot(history.history['val_loss'])
-        plt.title('Model Loss')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.legend(['Train', 'Validation'], loc='upper left')
-
-        # Calculate precision per epoch using validation data
-        precisions = []
-        for i in range(len(history.history['val_accuracy'])):
-            y_pred = self.model.predict(self.test_images)
-            y_pred_classes = np.argmax(y_pred, axis=1)
-            y_true = np.argmax(test_labels, axis=1)
-            precision = precision_score(y_true, y_pred_classes, average='weighted')
-            precisions.append(precision)
-
-        plt.subplot(1, 3, 3)
-        plt.plot(precisions)
-        plt.title('Model Precision')
-        plt.xlabel('Epoch')
-        plt.ylabel('Precision')
-        plt.legend(['Validation'], loc='upper left')
-
-        plt.tight_layout()
-        plt.show()
 
         return history
 
@@ -241,3 +236,54 @@ class ModelEvaluator:
         print(f"Precision: {precision:.4f}")
         print(f"Recall: {recall:.4f}")
         print(f"Accuracy: {accuracy:.4f}")
+
+    def plot_keras_history(self, history):
+        """
+        
+        :param history: 
+        :return: 
+        """
+        # the history object gives the metrics keys. 
+        # we will store the metrics keys that are from the training sesion.
+        metrics_names = [key for key in history.history.keys() if not key.startswith('val_')]
+
+        for i, metric in enumerate(metrics_names):
+            
+            # getting the training values
+            metric_train_values = history.history.get(metric, [])
+            
+            # getting the validation values
+            metric_val_values = history.history.get("val_{}".format(metric), [])
+
+            # As loss always exists as a metric we use it to find the 
+            epochs = range(1, len(metric_train_values) + 1)
+            
+            # leaving extra spaces to allign with the validation text
+            training_text = "   Training {}: {:.5f}".format(metric,
+                                                            metric_train_values[-1])
+
+            # metric
+            plt.figure(i, figsize=(12, 6))
+
+            plt.plot(epochs,
+                    metric_train_values,
+                    'b',
+                    label=training_text)
+            
+            # if we validation metric exists, then plot that as well
+            if metric_val_values:
+                validation_text = "Validation {}: {:.5f}".format(metric,
+                                                                metric_val_values[-1])
+
+                plt.plot(epochs,
+                        metric_val_values,
+                        'g',
+                        label=validation_text)
+            
+            # add title, xlabel, ylabe, and legend
+            plt.title('Model Metric: {}'.format(metric))
+            plt.xlabel('Epochs')
+            plt.ylabel(metric.title())
+            plt.legend()
+
+        plt.show()
