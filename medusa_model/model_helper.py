@@ -5,7 +5,7 @@ import seaborn as sns
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
+from keras.layers import Conv2D, MaxPooling2D, BatchNormalization, AveragePooling2D
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, f1_score, precision_score, recall_score
 from sklearn.preprocessing import LabelBinarizer
@@ -125,24 +125,22 @@ class EmotionRecognitionModel:
         model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
         self.model = model
 
-    def build_resnet50_model(self):
-        """
-        Builds the CNN ResNet-50 model for emotion recognition.
-        """
-        resnet_model = Sequential()
-        pretrained_model = tf.keras.applications.ResNet50(include_top=False,
-                                                  input_shape=(self.image_size[0], self.image_size[1], 1),
-                                                  pooling='avg',
-                                                  weights='imagenet')
-        for layer in pretrained_model.layers:
-            layer.trainable = False
-        resnet_model.add(pretrained_model)
-        
-        resnet_model.add(Flatten())
-        resnet_model.add(Dense(512, activation='relu'))
-        resnet_model.add(Dense(self.num_labels, activation='softmax'))
+    def build_lenet5_model(self):
 
-        resnet_model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
+        model = Sequential()
+
+        # First convolutional layer
+        model.add(Conv2D(6, kernel_size=(5, 5), input_shape=(self.image_size[0], self.image_size[1], 1), activation='relu', padding='same'))
+        model.add(AveragePooling2D(pool_size=(2, 2)))
+        model.add(Conv2D(16, kernel_size=(5, 5), activation='relu'))
+        model.add(AveragePooling2D(pool_size=(2, 2)))
+        model.add(Flatten())
+        model.add(Dense(120, activation='relu'))
+        model.add(Dense(84, activation='relu'))
+        model.add(Dense(self.num_labels, activation='softmax'))
+
+        model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
+        self.model = model
 
 
     def train_model(self):
