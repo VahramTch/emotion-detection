@@ -3,9 +3,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D, BatchNormalization, AveragePooling2D
+from keras.models import Sequential, Model
+from keras.layers import Conv2D, MaxPooling2D, BatchNormalization, AveragePooling2D, Multiply, GlobalAveragePooling2D, Reshape, Dense, Dropout, Flatten, Input
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, f1_score, precision_score, recall_score
 from sklearn.preprocessing import LabelBinarizer
@@ -69,7 +68,7 @@ class EmotionRecognitionModel:
 
         # Initialize FERData class for loading images
         self.fer_data = FERData(image_size=self.image_size, color_mode='grayscale')
-
+    
     def build_cnn_model(self):
         """
         Builds the CNN model for emotion recognition.

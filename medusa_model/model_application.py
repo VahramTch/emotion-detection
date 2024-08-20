@@ -45,7 +45,7 @@ train_images, valid_images, train_labels, valid_labels = train_test_split(
 # Initialize the EmotionRecognitionModel class
 emotion_model = EmotionRecognitionModel(class_labels, train_images, train_labels, valid_images, valid_labels, image_size=image_size, batch_size=64, epochs=30, learning_rate=0.0001)
 # Build the model
-emotion_model.build_lenet5_model()
+emotion_model.build_cnn_model()
 # Train the model
 history = emotion_model.train_model()
 
