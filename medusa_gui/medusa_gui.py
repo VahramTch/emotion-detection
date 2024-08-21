@@ -1,10 +1,9 @@
 import cv2
 import tkinter as tk
+from tkinter import ttk, Menu
 import os
 import numpy as np
-from tkinter import Button, Label, Menu
 from PIL import Image, ImageTk
-import tensorflow as tf
 from tensorflow.keras.models import load_model
 import platform
 
@@ -48,43 +47,13 @@ if not os.path.exists(ico_file_path):
 
 
 class EmotionDetectorGUI:
-    """
-    Implements a GUI application for real-time emotion detection using a webcam.
-
-    :param window: The main application window.
-    :param window_title: The title of the main application window.
-    :param cascade_path: The path to the Haar cascade XML file for face detection.
-
-    :var window: The main application window.
-    :var window_title: The title of the main application window.
-    :var cascade_path: The path to the Haar cascade XML file for face detection.
-    :var video_source: The index of the video source (webcam).
-    :var vid: The video capture object.
-    :var photo: The current frame as an ImageTk.PhotoImage object.
-    :var delay: The delay (in milliseconds) between frame updates.
-    :var face_recognition_enabled: A boolean indicating whether face recognition is enabled.
-    :var class_labels: A list of class labels for different emotions.
-    :var face_cascade: The Haar cascade classifier for face detection.
-    :var model: The pretrained emotion detection model.
-    :var menu_bar: The menu bar of the main application window.
-    :var file_menu: The "File" menu in the menu bar.
-    :var help_menu: The "Help" menu in the menu bar.
-    :var main_frame: The main frame containing the video feed and buttons.
-    :var canvas: The canvas for displaying the video feed.
-    :var button_frame: The frame containing the buttons for camera and face recognition toggling.
-    :var btn_toggle_camera: The button for opening and closing the camera.
-    :var btn_enable_face_recognition: The button for enabling/disabling face recognition.
-
-    """
     def __init__(self, window, window_title, cascade_path):
         self.window = window
         self.window.title(window_title)
-        if platform.system() == 'Windows':
-            self.video_source = 0
-        elif platform.system() == 'Darwin':
-            self.video_source = 1
-        else:
-            'Did not find platform system'
+        self.window.configure(bg="#f0f0f0")  # Light gray background
+
+        # Determine video source based on platform
+        self.video_source = 0 if platform.system() == 'Windows' else 1
         self.vid = None
         self.photo = None
         self.delay = 15
@@ -99,13 +68,13 @@ class EmotionDetectorGUI:
             raise IOError(f"Cannot load cascade classifier from {cascade_path}")
         print(f"Loaded cascade classifier from {cascade_path}")
 
-        # Create a menu bar
-        self.menu_bar = Menu(window)
-        window.config(menu=self.menu_bar)
-
         # Load the pretrained model once
         self.model = load_model(keras_model_path)
         print(f"Loaded model from {keras_model_path}")
+
+        # Create a menu bar
+        self.menu_bar = Menu(window)
+        window.config(menu=self.menu_bar)
 
         # Create "File" menu
         self.file_menu = Menu(self.menu_bar, tearoff=0)
@@ -118,25 +87,25 @@ class EmotionDetectorGUI:
         self.help_menu.add_command(label="Settings", command=self.open_settings)
         self.help_menu.add_command(label="Help", command=self.open_help)
 
-        # Create a frame for the video feed and buttons
-        self.main_frame = tk.Frame(window)
-        self.main_frame.grid(row=0, column=0, sticky="nsew")
+        # Create a main frame
+        self.main_frame = ttk.Frame(window)
+        self.main_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
 
         # Create canvas for video feed
-        self.canvas = tk.Canvas(self.main_frame, width=1920, height=1080)
-        self.canvas.grid(row=0, column=0, columnspan=3)
+        self.canvas = tk.Canvas(self.main_frame, width=1280, height=720, bg="black", highlightthickness=2, highlightbackground="gray")
+        self.canvas.grid(row=0, column=0, columnspan=3, pady=20)
 
         # Create a frame for the buttons
-        self.button_frame = tk.Frame(self.main_frame)
+        self.button_frame = ttk.Frame(self.main_frame)
         self.button_frame.grid(row=1, column=0, columnspan=3, pady=10)
 
         # Toggle button for opening and closing the camera
-        self.btn_toggle_camera = Button(self.button_frame, text="Open Camera", width=20, command=self.toggle_camera)
+        self.btn_toggle_camera = ttk.Button(self.button_frame, text="Open Camera", width=20, command=self.toggle_camera)
         self.btn_toggle_camera.grid(row=0, column=0, padx=5)
 
         # Button to enable/disable face recognition
-        self.btn_enable_face_recognition = Button(self.button_frame, text="Enable Face Recognition", width=20,
-                                                  command=self.toggle_face_recognition)
+        self.btn_enable_face_recognition = ttk.Button(self.button_frame, text="Enable Face Recognition", width=20,
+                                                      command=self.toggle_face_recognition)
         self.btn_enable_face_recognition.grid(row=0, column=1, padx=5)
 
         # Configure grid weights to ensure proper resizing behavior
@@ -208,7 +177,7 @@ class EmotionDetectorGUI:
 
                 # Calculate the aspect ratios
                 frame_aspect = frame_width / frame_height
-                canvas_aspect = 1920 / 1080
+                canvas_aspect = 1280 / 720
 
                 # Determine the scaling factor and new dimensions to maintain aspect ratio
                 if frame_aspect > canvas_aspect:
@@ -228,7 +197,7 @@ class EmotionDetectorGUI:
                 cropped_frame = frame[start_y:start_y + new_height, start_x:start_x + new_width]
 
                 # Resize the cropped frame to fit the canvas
-                resized_frame = cv2.resize(cropped_frame, (1920, 1080))
+                resized_frame = cv2.resize(cropped_frame, (1280, 720))
 
                 if self.face_recognition_enabled:
                     for (x, y, w, h, face) in self.preprocess_frame(resized_frame):
@@ -258,7 +227,7 @@ class EmotionDetectorGUI:
     def show_popup(self, title):
         popup = tk.Toplevel(self.window)
         popup.title(title)
-        label = Label(popup, text="Hello World", font=("Helvetica", 16))
+        label = ttk.Label(popup, text="This is a placeholder for settings/help.", padding=20)
         label.pack(padx=20, pady=20)
 
     def __del__(self):
@@ -267,11 +236,6 @@ class EmotionDetectorGUI:
 
 
 def main():
-    """
-    Initialize and run the Emotion Detector GUI.
-
-    :return: None
-    """
     root = tk.Tk()
     if os.path.exists(ico_file_path):
         root.iconbitmap(ico_file_path)
