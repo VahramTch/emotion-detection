@@ -4,13 +4,53 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from keras.models import Sequential, Model
-from keras.layers import Conv2D, MaxPooling2D, BatchNormalization, AveragePooling2D, Multiply, GlobalAveragePooling2D, Reshape, Dense, Dropout, Flatten, Input
+from keras.layers import Conv2D, MaxPooling2D, BatchNormalization, AveragePooling2D, Multiply, GlobalAveragePooling2D, \
+    Reshape, Dense, Dropout, Flatten, Input
 from tensorflow.keras.callbacks import EarlyStopping
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, f1_score, precision_score, \
+    recall_score
 from sklearn.preprocessing import LabelBinarizer
 from keras.preprocessing.image import load_img, img_to_array
 
+
 class FERData:
+    """
+    ============
+    FERData Class
+    ============
+
+    This class provides functionality for loading and preprocessing images for facial expression recognition.
+
+    Initializing the FERData Class
+    -----------------------------
+
+    .. code-block:: python
+
+        def __init__(self, image_size, color_mode='grayscale'):
+
+    Initializes the FERData class with the specified image size and color mode.
+
+    Parameters:
+        image_size (tuple): Tuple specifying the size to which each image will be resized (default is (48, 48)).
+        color_mode (str): String specifying the color mode, either 'grayscale' or 'rgb' (default is 'grayscale').
+
+
+    Loading and Preprocessing Images
+    -------------------------------
+
+    .. code-block:: python
+
+        def load_images_from_directory(self, directory, class_labels):
+
+    Loads and preprocesses images from the specified directory.
+
+    Parameters:
+        directory (str): Path to the directory containing class subdirectories with images.
+        class_labels (list): List of class labels (subdirectory names) to load images for.
+
+    Returns:
+        tuple: A tuple of (images, labels) where images is a numpy array of image data and labels is a numpy array of corresponding labels.
+    """
     def __init__(self, image_size, color_mode='grayscale'):
         """
         Initializes the FERData class with image size and color mode.
@@ -20,7 +60,7 @@ class FERData:
         """
         self.image_size = image_size
         self.color_mode = color_mode
-    
+
     def load_images_from_directory(self, directory, class_labels):
         """
         Loads and preprocesses images from the specified directory.
@@ -40,41 +80,45 @@ class FERData:
                 images.append(image_array)
                 labels.append(label)
         return np.array(images), np.array(labels)
-    
+
+
 class EmotionRecognitionModel:
-    def __init__(self, class_labels, train_images, train_labels, valid_images, valid_labels, image_size, batch_size=64, epochs=50, learning_rate=0.0001):
+    """
+    Builds the CNN AlexNet model for emotion recognition.
+    """
+    def build_alexnet_model(self):
         """
-        Initializes the EmotionRecognitionModel class.
-
-        :param class_labels: List of class labels.
-        :param image_size: Tuple specifying the size to which each image will be resized.
-        :param batch_size: Batch size for training.
-        :param epochs: Number of epochs for training.
-        :param learning_rate: Learning rate for the optimizer.
+        Builds the CNN AlexNet model for emotion recognition.
         """
-        self.class_labels = class_labels
-        self.num_labels = len(class_labels)
-        self.image_size = image_size
-        self.train_images = train_images
-        self.train_labels = train_labels
-        self.valid_images = valid_images,
-        self.valid_labels = valid_labels
-        self.batch_size = batch_size
-        self.epochs = epochs
-        self.learning_rate = learning_rate
-        self.model = None
-        self.lb = LabelBinarizer()
-        self.model_path = os.path.join(os.getcwd(),'medusa_model','h5models','model_optimal.h5')
+        model = Sequential()
+        model.add(
+            Conv2D(96, kernel_size=(11, 11), input_shape=(self.image_size[0], self.image_size[1], 1), strides=(4, 4),
+                   padding='valid', activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
+        model.add(Conv2D(256, kernel_size=(11, 11), strides=(1, 1), padding='valid', activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
+        model.add(Conv2D(384, kernel_size=(3, 3), strides=(1, 1), padding='valid', activation='relu'))
+        model.add(Conv2D(384, kernel_size=(3, 3), strides=(1, 1), padding='valid', activation='relu'))
+        model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), padding='valid', activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2), padding='valid'))
+        model.add(Flatten())
+        model.add(Dense(4096, activation='relu'))
+        model.add(Dropout(0.4))
+        model.add(Dense(1000, activation='relu'))
+        model.add(Dropout(0.4))
+        model.add(Dense(self.num_labels, activation='softmax'))
 
-        # Initialize FERData class for loading images
-        self.fer_data = FERData(image_size=self.image_size, color_mode='grayscale')
-    
+        model.compile(loss="categorical_crossentropy",
+                      optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
+        self.model = model
+
     def build_cnn_model(self):
         """
         Builds the CNN model for emotion recognition.
         """
         model = Sequential()
-        model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(self.image_size[0], self.image_size[1], 1)))
+        model.add(
+            Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(self.image_size[0], self.image_size[1], 1)))
         model.add(BatchNormalization())
         model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
         model.add(BatchNormalization())
@@ -98,38 +142,46 @@ class EmotionRecognitionModel:
         model.add(Dropout(0.5))
         model.add(Dense(self.num_labels, activation='softmax'))
 
-        model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
+        model.compile(loss="categorical_crossentropy",
+                      optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
         self.model = model
 
-    def build_alexnet_model(self):
+    def __init__(self, class_labels, train_images, train_labels, valid_images, valid_labels, image_size, batch_size=64,
+                 epochs=50, learning_rate=0.0001):
         """
-        Builds the CNN AlexNet model for emotion recognition.
-        """
-        model = Sequential()
-        model.add(Conv2D(96, kernel_size=(11,11), input_shape=(self.image_size[0], self.image_size[1], 1), strides=(4,4), padding='valid', activation='relu'))
-        model.add(MaxPooling2D(pool_size=(2,2), strides=(2,2), padding='valid'))                 
-        model.add(Conv2D(256, kernel_size=(11,11), strides=(1,1), padding='valid', activation='relu'))
-        model.add(MaxPooling2D(pool_size=(2,2), strides=(2,2), padding='valid'))
-        model.add(Conv2D(384, kernel_size=(3,3), strides=(1,1), padding='valid', activation='relu'))
-        model.add(Conv2D(384, kernel_size=(3,3), strides=(1,1), padding='valid', activation='relu'))
-        model.add(Conv2D(256, kernel_size=(3,3), strides=(1,1), padding='valid', activation='relu'))
-        model.add(MaxPooling2D(pool_size=(2,2), strides=(2,2), padding='valid'))
-        model.add(Flatten())
-        model.add(Dense(4096, activation='relu'))
-        model.add(Dropout(0.4))
-        model.add(Dense(1000, activation='relu'))
-        model.add(Dropout(0.4))
-        model.add(Dense(self.num_labels, activation='softmax'))
+        Initializes the EmotionRecognitionModel class.
 
-        model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
-        self.model = model
+        :param class_labels: List of class labels.
+        :param image_size: Tuple specifying the size to which each image will be resized.
+        :param batch_size: Batch size for training.
+        :param epochs: Number of epochs for training.
+        :param learning_rate: Learning rate for the optimizer.
+        """
+        self.class_labels = class_labels
+        self.num_labels = len(class_labels)
+        self.image_size = image_size
+        self.train_images = train_images
+        self.train_labels = train_labels
+        self.valid_images = valid_images
+        self.valid_labels = valid_labels
+        self.batch_size = batch_size
+        self.epochs = epochs
+        self.learning_rate = learning_rate
+        self.model = None
+        self.lb = LabelBinarizer()
+        self.model_path = os.path.join(os.getcwd(), 'medusa_model', 'keras_model',
+                                       'model_optimal.keras')  # Updated to .keras format
+
+        # Initialize FERData class for loading images
+        self.fer_data = FERData(image_size=self.image_size, color_mode='grayscale')
 
     def build_lenet5_model(self):
-
         model = Sequential()
 
         # First convolutional layer
-        model.add(Conv2D(6, kernel_size=(5, 5), input_shape=(self.image_size[0], self.image_size[1], 1), activation='relu', padding='same'))
+        model.add(
+            Conv2D(6, kernel_size=(5, 5), input_shape=(self.image_size[0], self.image_size[1], 1), activation='relu',
+                   padding='same'))
         model.add(AveragePooling2D(pool_size=(2, 2)))
         model.add(Conv2D(16, kernel_size=(5, 5), activation='relu'))
         model.add(AveragePooling2D(pool_size=(2, 2)))
@@ -138,9 +190,9 @@ class EmotionRecognitionModel:
         model.add(Dense(84, activation='relu'))
         model.add(Dense(self.num_labels, activation='softmax'))
 
-        model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
+        model.compile(loss="categorical_crossentropy",
+                      optimizer=tf.keras.optimizers.Adam(learning_rate=self.learning_rate), metrics=['accuracy'])
         self.model = model
-
 
     def train_model(self):
         # Encode labels
@@ -149,25 +201,36 @@ class EmotionRecognitionModel:
 
         # Stop training when a monitored quantity has stopped improving
         early_stopping_callback = EarlyStopping(monitor='val_loss',
-                  patience=3,
-                  verbose=1,
-                  min_delta=0.01,
-                  restore_best_weights=True)
+                                                patience=5,
+                                                verbose=1,
+                                                min_delta=0.01,
+                                                restore_best_weights=True)
 
         # Train the model
         history = self.model.fit(
             self.train_images, train_labels,
             batch_size=self.batch_size,
             epochs=self.epochs,
-            validation_data=(self.valid_images, valid_labels),callbacks=[early_stopping_callback]
+            validation_data=(self.valid_images, valid_labels), callbacks=[early_stopping_callback]
         )
 
-        # Save the final model
+        # Save the final model in the .keras format
         self.model.save(self.model_path)
 
         return history
 
+
 class ModelEvaluator:
+    """
+    ModelEvaluator class
+
+    Initializes the ModelEvaluator class with the model, test data, and labels.
+
+    :param model: Trained Keras model.
+    :param test_images: Numpy array of test images.
+    :param test_labels: List of true labels for the test images.
+    :param class_labels: List of all class labels.
+    """
     def __init__(self, model, test_images, test_labels, class_labels):
         """
         Initializes the ModelEvaluator class with the model, test data, and labels.
@@ -191,17 +254,17 @@ class ModelEvaluator:
         # Predict the labels for the test set
         predictions = self.model.predict(self.test_images)
         predicted_labels = self.lb.inverse_transform(predictions)
-        
+
         # Create the confusion matrix
         cm = confusion_matrix(self.test_labels, predicted_labels, labels=self.class_labels)
-        
+
         # Plot the confusion matrix
         self.plot_confusion_matrix(cm)
-        
+
         # Print the classification report
         print("Classification Report:\n")
         print(classification_report(self.test_labels, predicted_labels, target_names=self.class_labels))
-        
+
         # Calculate and print metrics
         self.print_metrics(self.test_labels, predicted_labels)
 
@@ -244,28 +307,28 @@ class ModelEvaluator:
         metrics_names = [key for key in history.history.keys() if not key.startswith('val_')]
 
         for i, metric in enumerate(metrics_names):
-            
+
             # getting the training values
             metric_train_values = history.history.get(metric, [])
-            
+
             # getting the validation values
             metric_val_values = history.history.get("val_{}".format(metric), [])
 
             # As loss always exists as a metric we use it to find the 
             epochs = range(1, len(metric_train_values) + 1)
-            
-            # leaving extra spaces to allign with the validation text
+
+            # leaving extra spaces to align with the validation text
             training_text = "   Training {}: {:.5f}".format(metric, metric_train_values[-1])
 
             # metric
             plt.figure(i, figsize=(12, 6))
             plt.plot(epochs, metric_train_values, 'b', label=training_text)
-            
-            # if we validation metric exists, then plot that as well
+
+            # if we validate metric exists, then plot that as well
             if metric_val_values:
                 validation_text = "Validation {}: {:.5f}".format(metric, metric_val_values[-1])
                 plt.plot(epochs, metric_val_values, 'g', label=validation_text)
-            
+
             # add title, xlabel, ylabe, and legend
             plt.title('Model Metric: {}'.format(metric))
             plt.xlabel('Epochs')

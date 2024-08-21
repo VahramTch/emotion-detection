@@ -32,12 +32,11 @@ emotion_detection_dir = os.path.join(current_dir, os.pardir, 'emotion-detection'
 # Path to the 'medusa_model' directory inside the 'emotion-detection' folder
 medusa_model_dir = os.path.join(emotion_detection_dir, 'medusa_model')
 
-# Path to the 'h5models' directory inside the 'medusa_model' folder
-h5_model_dir = os.path.join(medusa_model_dir, 'h5models')
+# Path to the 'keras_model' directory inside the 'medusa_model' folder
+h5_model_dir = os.path.join(medusa_model_dir, 'keras_model')
 
-# Path to the H5 file (model_optimal.h5) inside the 'h5models' folder (used for saving or loading the model)
+# Path to the H5 file (model_optimal.h5) inside the 'keras_model' folder (used for saving or loading the model)
 h5_model_path = os.path.join(h5_model_dir, 'model_optimal.h5')
-
 
 # Check if files exist
 if not os.path.exists(xml_file_path):
@@ -49,6 +48,34 @@ if not os.path.exists(ico_file_path):
 
 
 class EmotionDetectorGUI:
+    """
+    Implements a GUI application for real-time emotion detection using a webcam.
+
+    :param window: The main application window.
+    :param window_title: The title of the main application window.
+    :param cascade_path: The path to the Haar cascade XML file for face detection.
+
+    :var window: The main application window.
+    :var window_title: The title of the main application window.
+    :var cascade_path: The path to the Haar cascade XML file for face detection.
+    :var video_source: The index of the video source (webcam).
+    :var vid: The video capture object.
+    :var photo: The current frame as an ImageTk.PhotoImage object.
+    :var delay: The delay (in milliseconds) between frame updates.
+    :var face_recognition_enabled: A boolean indicating whether face recognition is enabled.
+    :var class_labels: A list of class labels for different emotions.
+    :var face_cascade: The Haar cascade classifier for face detection.
+    :var model: The pretrained emotion detection model.
+    :var menu_bar: The menu bar of the main application window.
+    :var file_menu: The "File" menu in the menu bar.
+    :var help_menu: The "Help" menu in the menu bar.
+    :var main_frame: The main frame containing the video feed and buttons.
+    :var canvas: The canvas for displaying the video feed.
+    :var button_frame: The frame containing the buttons for camera and face recognition toggling.
+    :var btn_toggle_camera: The button for opening and closing the camera.
+    :var btn_enable_face_recognition: The button for enabling/disabling face recognition.
+
+    """
     def __init__(self, window, window_title, cascade_path):
         self.window = window
         self.window.title(window_title)
@@ -240,6 +267,11 @@ class EmotionDetectorGUI:
 
 
 def main():
+    """
+    Initialize and run the Emotion Detector GUI.
+
+    :return: None
+    """
     root = tk.Tk()
     if os.path.exists(ico_file_path):
         root.iconbitmap(ico_file_path)
