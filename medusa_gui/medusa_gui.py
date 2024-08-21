@@ -33,16 +33,16 @@ emotion_detection_dir = os.path.join(current_dir, os.pardir, 'emotion-detection'
 medusa_model_dir = os.path.join(emotion_detection_dir, 'medusa_model')
 
 # Path to the 'keras_model' directory inside the 'medusa_model' folder
-h5_model_dir = os.path.join(medusa_model_dir, 'keras_model')
+keras_model_dir = os.path.join(medusa_model_dir, 'keras_model')
 
-# Path to the H5 file (model_optimal.h5) inside the 'keras_model' folder (used for saving or loading the model)
-h5_model_path = os.path.join(h5_model_dir, 'model_optimal.h5')
+# Path to the keras file (model_optimal.keras) inside the 'keras_model' folder (used for saving or loading the model)
+keras_model_path = os.path.join(keras_model_dir, 'model_optimal.keras')
 
 # Check if files exist
 if not os.path.exists(xml_file_path):
     raise IOError(f"Cannot find Haar cascade XML file at {xml_file_path}")
-if not os.path.exists(h5_model_path):
-    raise IOError(f"Cannot find H5 model file at {h5_model_path}")
+if not os.path.exists(keras_model_path):
+    raise IOError(f"Cannot find H5 model file at {keras_model_path}")
 if not os.path.exists(ico_file_path):
     print(f"Icon file not found at {ico_file_path}, using default icon")
 
@@ -104,8 +104,8 @@ class EmotionDetectorGUI:
         window.config(menu=self.menu_bar)
 
         # Load the pretrained model once
-        self.model = load_model(h5_model_path)
-        print(f"Loaded model from {h5_model_path}")
+        self.model = load_model(keras_model_path)
+        print(f"Loaded model from {keras_model_path}")
 
         # Create "File" menu
         self.file_menu = Menu(self.menu_bar, tearoff=0)
