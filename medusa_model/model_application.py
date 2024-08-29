@@ -2,6 +2,7 @@ import os
 from tensorflow.keras.models import load_model
 from sklearn.model_selection import train_test_split
 from model_helper import *
+from model_evaluator import ModelEvaluator
 
 # Get the current working directory of the script
 current_dir = os.getcwd()
