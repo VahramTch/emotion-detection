@@ -7,9 +7,6 @@ from model_evaluator import ModelEvaluator
 # Get the current working directory of the script
 current_dir = os.getcwd()
 
-# Path to the 'assets' directory inside the 'medusa_gui' folder
-assets_dir = os.path.join(current_dir, 'medusa_gui', 'assets')
-
 # Path to the 'test' directory inside the 'medusa_model/dataset' folder (used for test data)
 test_dir = os.path.join(current_dir, 'medusa_model', 'dataset', 'test')
 

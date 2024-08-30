@@ -58,7 +58,7 @@ class ModelEvaluator:
         :param cm: Confusion matrix to be plotted.
         """
         plt.figure(figsize=(10, 8))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=self.class_labels, yticklabels=self.class_labels)
+        sns.heatmap(cm, annot=True, cmap='Blues', xticklabels=self.class_labels, yticklabels=self.class_labels)
         plt.xlabel('Predicted Label')
         plt.ylabel('True Label')
         plt.show()
@@ -82,40 +82,44 @@ class ModelEvaluator:
 
     def plot_keras_history(self, history):
         """
-        :param history: 
-        :return: 
+        Plots training and validation accuracy and loss in two subplots.
+        
+        :param history: The history object from Keras model training.
         """
-        # the history object gives the metrics keys. 
-        # we will store the metrics keys that are from the training sesion.
-        metrics_names = [key for key in history.history.keys() if not key.startswith('val_')]
+        # Retrieve accuracy and loss values from the history
+        acc_train = history.history.get('accuracy', [])
+        acc_val = history.history.get('val_accuracy', [])
+        loss_train = history.history.get('loss', [])
+        loss_val = history.history.get('val_loss', [])
+        
+        # Determine the range of epochs
+        epochs = range(1, len(acc_train) + 1)
 
-        for i, metric in enumerate(metrics_names):
+        # Create a figure with two subplots (side by side)
+        fig, axs = plt.subplots(1, 2, figsize=(14, 6))
 
-            # getting the training values
-            metric_train_values = history.history.get(metric, [])
+        # Plot accuracy
+        axs[0].plot(epochs, acc_train, label='Training Accuracy', color='blue')
+        if acc_val:
+            axs[0].plot(epochs, acc_val, label='Validation Accuracy', color='orange')
+        axs[0].set_title('Accuracy')
+        axs[0].set_xlabel('Epochs')
+        axs[0].set_ylabel('Accuracy')
+        axs[0].legend()
+        axs[0].grid(True)
 
-            # getting the validation values
-            metric_val_values = history.history.get("val_{}".format(metric), [])
+        # Plot loss
+        axs[1].plot(epochs, loss_train, label='Training Loss', color='blue')
+        if loss_val:
+            axs[1].plot(epochs, loss_val, label='Validation Loss', color='orange')
+        axs[1].set_title('Loss')
+        axs[1].set_xlabel('Epochs')
+        axs[1].set_ylabel('Loss')
+        axs[1].legend()
+        axs[1].grid(True)
 
-            # As loss always exists as a metric we use it to find the 
-            epochs = range(1, len(metric_train_values) + 1)
-
-            # leaving extra spaces to align with the validation text
-            training_text = "   Training {}: {:.5f}".format(metric, metric_train_values[-1])
-
-            # metric
-            plt.figure(i, figsize=(12, 6))
-            plt.plot(epochs, metric_train_values, 'b', label=training_text)
-
-            # if we validate metric exists, then plot that as well
-            if metric_val_values:
-                validation_text = "Validation {}: {:.5f}".format(metric, metric_val_values[-1])
-                plt.plot(epochs, metric_val_values, 'g', label=validation_text)
-
-            # add title, xlabel, ylabe, and legend
-            plt.title('Model Metric: {}'.format(metric))
-            plt.xlabel('Epochs')
-            plt.ylabel(metric.title())
-            plt.legend()
-
+        # Adjust layout and show the figure
+        plt.tight_layout()
         plt.show()
+
+
