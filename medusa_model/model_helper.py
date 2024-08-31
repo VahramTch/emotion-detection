@@ -9,6 +9,22 @@ from keras.preprocessing.image import load_img, img_to_array
 
 
 class FERData:
+    """
+    FERData represents a class that loads and processes images for Facial Emotion Recognition.
+
+    Args:
+        image_size (tuple): The target size of the images (height, width).
+        color_mode (str, optional): The color mode of the images. Defaults to 'grayscale'.
+
+    Attributes:
+        image_size (tuple): The target size of the images (height, width).
+        color_mode (str): The color mode of the images.
+
+    Methods:
+        load_images_from_directory(directory, class_labels): Loads the images from a directory and returns the images and labels.
+
+    """
+
     def __init__(self, image_size, color_mode='grayscale'):
         """
         Initializes the FERData class with image size and color mode.
@@ -42,7 +58,41 @@ class FERData:
 
 class EmotionRecognitionModel:
     """
-    Builds the CNN AlexNet model for emotion recognition.
+    Class representing a model for emotion recognition.
+
+    Args:
+        class_labels (list): List of class labels.
+        train_images (ndarray): Training images.
+        train_labels (list): Training labels.
+        valid_images (ndarray): Validation images.
+        valid_labels (list): Validation labels.
+        image_size (tuple): Size of the input images.
+        batch_size (int, optional): Batch size for training. Defaults to 64.
+        epochs (int, optional): Number of epochs for training. Defaults to 50.
+        learning_rate (float, optional): Learning rate for optimizer. Defaults to 0.0001.
+
+    Attributes:
+        class_labels (list): List of class labels.
+        num_labels (int): Number of class labels.
+        image_size (tuple): Size of the input images.
+        train_images (ndarray): Training images.
+        train_labels (list): Training labels.
+        valid_images (ndarray): Validation images.
+        valid_labels (list): Validation labels.
+        batch_size (int): Batch size for training.
+        epochs (int): Number of epochs for training.
+        learning_rate (float): Learning rate for optimizer.
+        model (Sequential): Emotional recognition model.
+        lb (LabelBinarizer): Label binarizer.
+        model_path (str): Path to save the trained model.
+        fer_data (FERData): FERData instance for data preprocessing.
+
+    Methods:
+        build_alexnet_model(): Build the AlexNet model.
+        build_cnn_model(): Build the CNN model.
+        build_lenet5_model(): Build the LeNet-5 model.
+        train_model(): Train the model.
+
     """
 
     def __init__(self, class_labels, train_images, train_labels, valid_images, valid_labels, image_size, batch_size=64,

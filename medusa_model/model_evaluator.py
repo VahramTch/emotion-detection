@@ -5,8 +5,6 @@ from sklearn.preprocessing import LabelBinarizer, OneHotEncoder
 
 class ModelEvaluator:
     """
-    ModelEvaluator class
-
     Initializes the ModelEvaluator class with the model, test data, and labels.
 
     :param model: Trained Keras model.
