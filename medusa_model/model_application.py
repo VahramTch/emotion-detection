@@ -42,15 +42,14 @@ train_images, valid_images, train_labels, valid_labels = train_test_split(
 emotion_model = EmotionRecognitionModel(class_labels, train_images, train_labels, valid_images, valid_labels,
                                         image_size=image_size, batch_size=64, epochs=50, learning_rate=0.0001)
 # Build the model
-emotion_model.build_lenet5_model()
+# Please select the model you want to train here. Custom CNN is the default model.
+emotion_model.build_cnn_model()
 # Train the model
 history = emotion_model.train_model()
 
 # Load the pre-trained model
 model = load_model(keras_model_path)
-# Optionally recompile the model to avoid the warning
-model.compile(loss="categorical_crossentropy", optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
-              metrics=['accuracy'])
+
 # Evaluate the model
 evaluator = ModelEvaluator(model, test_images, test_labels, class_labels)
 evaluator.evaluate()

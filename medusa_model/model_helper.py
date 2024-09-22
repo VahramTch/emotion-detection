@@ -73,7 +73,6 @@ class EmotionRecognitionModel:
 
     Attributes:
         class_labels (list): List of class labels.
-        num_labels (int): Number of class labels.
         image_size (tuple): Size of the input images.
         train_images (ndarray): Training images.
         train_labels (list): Training labels.
@@ -99,12 +98,6 @@ class EmotionRecognitionModel:
                  epochs=50, learning_rate=0.0001):
         """
         Initializes the EmotionRecognitionModel class.
-
-        :param class_labels: List of class labels.
-        :param image_size: Tuple specifying the size to which each image will be resized.
-        :param batch_size: Batch size for training.
-        :param epochs: Number of epochs for training.
-        :param learning_rate: Learning rate for the optimizer.
         """
         self.class_labels = class_labels
         self.num_labels = len(class_labels)
@@ -126,6 +119,9 @@ class EmotionRecognitionModel:
 
 
     def build_googlenet_model(self):
+        """
+        Builds the GoogLeNet (Inception) model for emotion recognition.
+        """
         input_layer = Input(shape=(self.image_size[0], self.image_size[1], 1))
 
         conv1 = Conv2D(64, (7,7), strides=(2,2), padding='same', activation='relu')(input_layer)
@@ -162,19 +158,27 @@ class EmotionRecognitionModel:
 
 
     def inception_module(self, x, filters):
-        conv1x1 = Conv2D(filters[0], (1,1), padding='same', activation='relu')(x)
-        conv3x3_reduce = Conv2D(filters[1], (1,1), padding='same', activation='relu')(x)
-        conv3x3 = Conv2D(filters[2], (3,3), padding='same', activation='relu')(conv3x3_reduce)
-        conv5x5_reduce = Conv2D(filters[3], (1,1), padding='same', activation='relu')(x)
-        conv5x5 = Conv2D(filters[4], (5,5), padding='same', activation='relu')(conv5x5_reduce)
+        """
+        Defines the inception module used in GoogLeNet.
+
+        :param x: Input tensor.
+        :param filters: List of filter sizes for the different convolution layers in the module.
+        :return: Concatenated output tensor from the inception module.
+        """
+        conv1 = Conv2D(filters[0], (1,1), padding='same', activation='relu')(x)
+        conv3_reduce = Conv2D(filters[1], (1,1), padding='same', activation='relu')(x)
+        conv3 = Conv2D(filters[2], (3,3), padding='same', activation='relu')(conv3_reduce)
+        conv5_reduce = Conv2D(filters[3], (1,1), padding='same', activation='relu')(x)
+        conv5 = Conv2D(filters[4], (5,5), padding='same', activation='relu')(conv5_reduce)
         maxpool = MaxPooling2D((3,3), strides=(1,1), padding='same')(x)
         maxpool_conv = Conv2D(filters[5], (1,1), padding='same', activation='relu')(maxpool)
-        return concatenate([conv1x1, conv3x3, conv5x5, maxpool_conv], axis=3)
+        return concatenate([conv1, conv3, conv5, maxpool_conv], axis=3)
     
     def build_lenet5_model(self):
+        """
+        Builds the LeNet-5 model for emotion recognition.
+        """
         model = Sequential()
-
-        # First convolutional layer
         model.add(
             Conv2D(6, kernel_size=(5, 5), input_shape=(self.image_size[0], self.image_size[1], 1), activation='relu',
                    padding='same'))
@@ -192,7 +196,7 @@ class EmotionRecognitionModel:
 
     def build_cnn_model(self):
         """
-        Builds the CNN model for emotion recognition.
+        Builds the custom CNN model for emotion recognition.
         """
         model = Sequential()
         model.add(
@@ -225,6 +229,11 @@ class EmotionRecognitionModel:
         self.model = model
 
     def train_model(self):
+        """
+        Trains the emotion recognition model and saves the best performing model.
+
+        :return: Training history object that contains training metrics.
+        """
         # Encode labels
         train_labels = self.lb.fit_transform(self.train_labels)
         valid_labels = self.lb.transform(self.valid_labels)
