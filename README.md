@@ -46,4 +46,4 @@ Run the interface
 ```
 
 ## 📈 Performance
-The model achieves an accuracy of approximately 70% on the test set of the FER-2013 dataset. 
+The model achieves an accuracy of approximately 84% on the test set. 
