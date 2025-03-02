@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, f1_score, precision_score, recall_score
-from sklearn.preprocessing import LabelBinarizer, OneHotEncoder
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score, f1_score, precision_score, recall_score, precision_recall_curve, roc_curve, auc
+from sklearn.preprocessing import LabelBinarizer
 
 class ModelEvaluator:
     """
@@ -27,6 +27,7 @@ class ModelEvaluator:
         self.class_labels = class_labels
         self.lb = LabelBinarizer()
         self.test_labels_encoded = self.lb.fit_transform(test_labels)
+        self.predictions = model.predict(test_images)
 
     def evaluate(self):
         """
@@ -41,6 +42,12 @@ class ModelEvaluator:
 
         # Plot the confusion matrix
         self.plot_confusion_matrix(cm)
+
+        # Plot the Recall-Precision curve for each class
+        self.plot_recall_precision_curve()
+
+        # Plot the ROC curve for each class
+        self.plot_roc_curve()
 
         # Print the classification report
         print("Classification Report:\n")
@@ -59,6 +66,36 @@ class ModelEvaluator:
         sns.heatmap(cm, annot=True, cmap='Blues', xticklabels=self.class_labels, yticklabels=self.class_labels)
         plt.xlabel('Predicted Label')
         plt.ylabel('True Label')
+        plt.show()
+
+    def plot_recall_precision_curve(self):
+        """
+        Plots the Recall-Precision curve for each class.
+        """
+        plt.figure(figsize=(10, 6))
+        for i, class_label in enumerate(self.class_labels):
+            precision, recall, _ = precision_recall_curve(self.test_labels_encoded[:, i], self.predictions[:, i])
+            plt.plot(recall, precision, label=f'Class {class_label}')
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.title('Recall-Precision Curve')
+        plt.legend()
+        plt.show()
+    
+    def plot_roc_curve(self):
+        """
+        Plots the ROC curve for each class.
+        """
+        plt.figure(figsize=(10, 6))
+        for i, class_label in enumerate(self.class_labels):
+            fpr, tpr, _ = roc_curve(self.test_labels_encoded[:, i], self.predictions[:, i])
+            roc_auc = auc(fpr, tpr)
+            plt.plot(fpr, tpr, label=f'Class {class_label} (AUC = {roc_auc:.2f})')
+        plt.plot([0, 1], [0, 1], 'k--')  # Diagonal line for random guessing
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('ROC Curve')
+        plt.legend()
         plt.show()
 
     def print_metrics(self, true_labels, predicted_labels):
@@ -119,5 +156,3 @@ class ModelEvaluator:
         # Adjust layout and show the figure
         plt.tight_layout()
         plt.show()
-
-
