@@ -19,24 +19,38 @@ keras_model_dir = os.path.join(current_dir, 'medusa_model', 'keras_model')
 # Path to the keras file ('model_optimal.keras') inside the 'keras_model' folder at the current directory level
 keras_model_path = os.path.join(keras_model_dir, 'model_optimal.keras')
 
+# Path to the keras file ('model_optimal.keras') inside the 'keras_model' folder at the current directory level
+train_aug_dir = os.path.join(current_dir, 'medusa_model', 'dataset', 'train_aug')
+
 # Define class labels
 class_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 # Define image size
 image_size = (48, 48)
 
-print("Loading the data...")
+
 # Initialize the FERData class
 fer_data = FERData(image_size=image_size, color_mode='grayscale')
 # Load train data
 all_train_images, all_train_labels = fer_data.load_images_from_directory(train_dir, class_labels)
 # Load test data
 test_images, test_labels = fer_data.load_images_from_directory(test_dir, class_labels)
-print("Data Loaded !")
+
+
+# Plot the class distribution before the data augmentation process.
+fer_data.plot_class_distribution(all_train_labels)
+
+fer_data.generate_augmented_images(train_dir, train_aug_dir, class_labels)
+# Moves the not augmeneted data from the training directory to the new directory. Does not delete the diles from the training directory.
+fer_data.move_files(train_dir, train_aug_dir, class_labels)
+all_train_aug_images, all_train_aug_labels = fer_data.load_images_from_directory(train_aug_dir, class_labels)
+
+# Plot the class distribution after the data augmentation process.
+fer_data.plot_class_distribution(all_train_aug_labels)
 
 # Split the traing folder into training and validation sets (80% train, 20% validation)
 train_images, valid_images, train_labels, valid_labels = train_test_split(
-    all_train_images, all_train_labels, test_size=0.2, random_state=42, stratify=all_train_labels
-)
+    all_train_aug_images, all_train_aug_labels, test_size=0.2, random_state=42, stratify=all_train_aug_labels)
+
 
 # Initialize the EmotionRecognitionModel class
 emotion_model = EmotionRecognitionModel(class_labels, train_images, train_labels, valid_images, valid_labels,
@@ -50,8 +64,9 @@ history = emotion_model.train_model()
 # Load the pre-trained model
 model = load_model(keras_model_path)
 
+
 # Evaluate the model
 evaluator = ModelEvaluator(model, test_images, test_labels, class_labels)
 evaluator.evaluate()
 # Plot the history of the model
-evaluator.plot_keras_history(history)
+#evaluator.plot_keras_history(history)

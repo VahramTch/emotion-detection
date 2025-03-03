@@ -63,7 +63,7 @@ class ModelEvaluator:
         :param cm: Confusion matrix to be plotted.
         """
         plt.figure(figsize=(10, 8))
-        sns.heatmap(cm, annot=True, cmap='Blues', xticklabels=self.class_labels, yticklabels=self.class_labels)
+        sns.heatmap(cm, annot=True, cmap='Blues', xticklabels=self.class_labels, yticklabels=self.class_labels, fmt="d")
         plt.xlabel('Predicted Label')
         plt.ylabel('True Label')
         plt.show()

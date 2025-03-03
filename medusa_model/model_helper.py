@@ -1,11 +1,14 @@
 import os
+import seaborn as sns
 import tensorflow as tf
+import matplotlib.pyplot as plt
 import numpy as np
+import shutil
 from keras.models import Sequential, Model
 from keras.layers import Conv2D, MaxPooling2D, BatchNormalization, AveragePooling2D, Dense, Dropout, Flatten, concatenate, Input
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.preprocessing import LabelBinarizer
-from keras.preprocessing.image import load_img, img_to_array
+from tensorflow.keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 
 
 class FERData:
@@ -43,6 +46,7 @@ class FERData:
         :param class_labels: List of class labels (subdirectory names) to load images for.
         :return: A tuple of (images, labels) where images is a numpy array of image data and labels is a numpy array of corresponding labels.
         """
+        print("Loading data...")
         images = []
         labels = []
         for label in class_labels:
@@ -53,8 +57,111 @@ class FERData:
                 image_array = img_to_array(image) / 255.0  # Normalize to [0, 1]
                 images.append(image_array)
                 labels.append(label)
+        print("Data Loaded !")
         return np.array(images), np.array(labels)
+    
+    def plot_class_distribution(self, labels):
+        """
+        Plots a visually enhanced distribution of the dataset for each class.
 
+        :param labels: A numpy array of class labels corresponding to the dataset images.
+        """
+        unique_classes, counts = np.unique(labels, return_counts=True)
+        
+        # Set Seaborn style
+        sns.set_style("whitegrid")
+        
+        plt.figure(figsize=(12, 6))
+        colors = sns.color_palette("pastel", len(unique_classes))  # Soft color scheme
+        bars = plt.bar(unique_classes, counts, color=colors, edgecolor="black", linewidth=1.2)
+        
+        # Add text labels on top of the bars
+        for bar, count in zip(bars, counts):
+            plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 2, 
+                    str(count), ha="center", fontsize=12, fontweight="bold", color="black")
+
+        # Customize plot aesthetics
+        plt.xlabel("Class", fontsize=14, fontweight="bold")
+        plt.ylabel("Number of Images", fontsize=14, fontweight="bold")
+        plt.title("Dataset Class Distribution", fontsize=16, fontweight="bold")
+        plt.xticks(rotation=45, fontsize=12)
+        plt.yticks(fontsize=12)
+        plt.show()
+
+    def generate_augmented_images(self, source_directory, target_directory, class_labels, target_count=7000):
+        """
+        This function generates augmented images for each class in the source directory and saves them to the target directory.
+
+        Parameters:
+        - source_directory (str): The path to the directory containing subdirectories for each class with the source images.
+        - target_directory (str): The path where the augmented images will be saved, organized in subdirectories by class.
+        - class_labels (list): A list of class labels (subdirectory names in the source directory) for which augmentation will be applied.
+        - target_count (int): The desired number of images per class in the target directory. By default, it is set to 7000.
+
+        The function uses an ImageDataGenerator to apply various transformations (rotation, shift, shear, zoom, and flipping) to the source images,
+        and saves the generated augmented images to the target directory. It ensures each class has at least the target_count of images.
+        """
+        
+        print("Generating images...")
+        datagen = ImageDataGenerator(
+            rotation_range=30,
+            width_shift_range=0.1,
+            height_shift_range=0.1,
+            shear_range=0.2,
+            zoom_range=0.2,
+            horizontal_flip=True,
+            fill_mode='nearest'
+        )
+
+        for label in class_labels:
+            class_dir = os.path.join(source_directory, label)
+            save_dir = os.path.join(target_directory, label)
+            os.makedirs(save_dir, exist_ok=True)
+
+            images = []
+            for image_name in os.listdir(class_dir):
+                image_path = os.path.join(class_dir, image_name)
+                image = load_img(image_path, target_size=self.image_size, color_mode=self.color_mode)
+                image_array = img_to_array(image) / 255.0
+                images.append(image_array)
+
+            images = np.array(images)
+            current_count = len(images)
+            needed_images = target_count - current_count
+
+            if needed_images > 0:
+                i = 0
+                for batch in datagen.flow(images, batch_size=1, save_to_dir=save_dir, save_prefix='aug', save_format='png'):
+                    i += 1
+                    if i >= needed_images:
+                        break
+
+        print("Data augmentation completed.")
+
+    def move_files(self, source_folder, target_folder, class_labels):
+        """
+        Copies files from subfolders in source_folder to corresponding subfolders in target_folder.
+
+        :param source_folder: Path to the source directory.
+        :param target_folder: Path to the target directory.
+        :param class_labels: List of subfolder names (class labels).
+        """
+        print("Copying files..")
+        for label in class_labels:
+            source_path = os.path.join(source_folder, label)
+            target_path = os.path.join(target_folder, label)
+
+            if not os.path.exists(target_path):
+                os.makedirs(target_path)  # Create subfolder if it doesn't exist
+
+            for file_name in os.listdir(source_path):
+                file_source = os.path.join(source_path, file_name)
+                file_target = os.path.join(target_path, file_name)
+
+                if os.path.isfile(file_source):  # Ensure it's a file
+                    shutil.copy2(file_source, file_target)  # Copy file with metadata
+
+        print("All files copied successfully!")
 
 class EmotionRecognitionModel:
     """
