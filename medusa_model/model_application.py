@@ -3,6 +3,15 @@ from tensorflow.keras.models import load_model
 from sklearn.model_selection import train_test_split
 from model_helper import *
 from model_evaluator import ModelEvaluator
+import argparse
+
+# Create an argument parser
+parser = argparse.ArgumentParser(description="Train a CNN model.")
+# Add an argument to specify the model type
+parser.add_argument("--model", type=str, choices=["cnn", "googlenet", "lenet5"], default="cnn",
+					help="Select the model to train: 'cnn', 'googlenet', or 'lenet5'.")
+# Parse command-line arguments
+args = parser.parse_args()
 
 # Get the current working directory of the script
 current_dir = os.getcwd()
@@ -55,9 +64,17 @@ train_images, valid_images, train_labels, valid_labels = train_test_split(
 # Initialize the EmotionRecognitionModel class
 emotion_model = EmotionRecognitionModel(class_labels, train_images, train_labels, valid_images, valid_labels,
                                         image_size=image_size, batch_size=64, epochs=50, learning_rate=0.0001)
-# Build the model
+
 # Please select the model you want to train here. Custom CNN is the default model.
-emotion_model.build_cnn_model()
+if args.model == "cnn":
+	model = emotion_model.build_cnn_model()
+elif args.model == "googlenet":
+	model = emotion_model.build_googlenet_model()
+elif args.model == "lenet5":
+	model = emotion_model.build_lenet5_model()
+else:
+	raise ValueError("Invalid model choice!")
+
 # Train the model
 history = emotion_model.train_model()
 
