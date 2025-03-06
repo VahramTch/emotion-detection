@@ -31,6 +31,9 @@ keras_model_path = os.path.join(keras_model_dir, 'model_optimal.keras')
 # Path to the keras file ('model_optimal.keras') inside the 'keras_model' folder at the current directory level
 train_aug_dir = os.path.join(current_dir, 'medusa_model', 'dataset', 'train_aug')
 
+# Path to the keras file ('model_optimal.keras') inside the 'keras_model' folder at the current directory level
+test_compl_dir = os.path.join(current_dir, 'medusa_model', 'dataset', 'test_compl')
+
 # Define class labels
 class_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
 # Define image size
@@ -43,7 +46,6 @@ fer_data = FERData(image_size=image_size, color_mode='grayscale')
 all_train_images, all_train_labels = fer_data.load_images_from_directory(train_dir, class_labels)
 # Load test data
 test_images, test_labels = fer_data.load_images_from_directory(test_dir, class_labels)
-
 
 # Plot the class distribution before the data augmentation process.
 fer_data.plot_class_distribution(all_train_labels)
@@ -86,4 +88,4 @@ model = load_model(keras_model_path)
 evaluator = ModelEvaluator(model, test_images, test_labels, class_labels)
 evaluator.evaluate()
 # Plot the history of the model
-#evaluator.plot_keras_history(history)
+evaluator.plot_keras_history(history)
