@@ -39,13 +39,13 @@ Install requirements
   pip install -r requirements.txt
 ```
 
-Run the desktop application
+Run the desktop application by running the following command:
 
 ```bash
   python medusa_gui/medusa_gui.py
 ```
 
-Train the model you choose
+You can train a model of your choice by running the following command:
 
 ```bash
   python medusa_model/medusa_application.py --model <model_name>
