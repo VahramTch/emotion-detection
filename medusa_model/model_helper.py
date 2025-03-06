@@ -194,7 +194,7 @@ class EmotionRecognitionModel:
         fer_data (FERData): FERData instance for data preprocessing.
 
     Methods:
-        build_alexnet_model(): Build the AlexNet model.
+        build_googlenet_model(): Build the AlexNet model.
         build_cnn_model(): Build the CNN model.
         build_lenet5_model(): Build the LeNet-5 model.
         train_model(): Train the model.
