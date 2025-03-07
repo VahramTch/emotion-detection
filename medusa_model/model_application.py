@@ -31,8 +31,6 @@ keras_model_path = os.path.join(keras_model_dir, 'model_optimal.keras')
 # Path to the keras file ('model_optimal.keras') inside the 'keras_model' folder at the current directory level
 train_aug_dir = os.path.join(current_dir, 'medusa_model', 'dataset', 'train_aug')
 
-# Path to the keras file ('model_optimal.keras') inside the 'keras_model' folder at the current directory level
-test_compl_dir = os.path.join(current_dir, 'medusa_model', 'dataset', 'test_compl')
 
 # Define class labels
 class_labels = ['angry', 'disgust', 'fear', 'happy', 'neutral', 'sad', 'surprise']
